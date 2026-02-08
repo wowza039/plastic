@@ -16,7 +16,7 @@
             padding: 20px; 
             display: flex;
             justify-content: center;
-            align-items: flex-start;
+            align-items: center; /* จัดกลางแนวตั้ง */
             min-height: 100vh;
         }
 
@@ -27,7 +27,7 @@
             padding: 30px; 
             border-radius: 25px; 
             box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
-            text-align: center; /* ทำให้ข้อความและ inline elements อยู่ตรงกลาง */
+            text-align: center; 
         }
 
         h1 { color: var(--primary); margin-bottom: 10px; }
@@ -39,14 +39,13 @@
             display: inline-block; 
             background: #000; 
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            margin: 0 auto; /* จัดกลาง */
-            line-height: 0; /* ลดช่องว่างใต้ canvas */
+            margin: 20px auto;
+            line-height: 0;
         }
 
-        /* บังคับให้ canvas ที่ถูกสร้างใหม่จัดกลางด้วย */
         #webcam-container canvas {
-            display: block;
-            margin: 0 auto;
+            max-width: 100%;
+            height: auto !important;
         }
 
         .btn-capture { 
@@ -59,20 +58,17 @@
             cursor: pointer; 
             transition: 0.3s; 
             font-weight: 600; 
-            margin-top: 20px; 
-            margin-bottom: 10px;
+            margin-top: 10px;
         }
 
         .btn-capture:hover { 
             transform: scale(1.05); 
             background: #219150; 
-            box-shadow: 0 5px 15px rgba(39,174,96,0.4); 
         }
 
         #result-card { 
             margin-top: 25px; 
             display: none; 
-            text-align: center; /* เปลี่ยนเป็นจัดกลาง */
             animation: fadeIn 0.5s; 
             border-top: 3px solid var(--primary); 
             padding-top: 20px; 
@@ -81,9 +77,9 @@
         .type-badge { 
             background: var(--primary); 
             color: white; 
-            padding: 5px 25px; 
-            border-radius: 10px; 
-            font-size: 28px; 
+            padding: 8px 25px; 
+            border-radius: 12px; 
+            font-size: 24px; 
             display: inline-block; 
             margin-bottom: 15px; 
         }
@@ -93,14 +89,13 @@
             padding: 15px; 
             border-radius: 15px; 
             margin-bottom: 15px; 
-            text-align: left; /* เนื้อหาข้างในกล่องข้อมูลให้ชิดซ้ายเพื่อให้อ่านง่าย */
+            text-align: left; 
         }
 
         .info-label { 
             font-weight: 600; 
             color: var(--primary); 
             display: block; 
-            margin-bottom: 5px; 
             font-size: 18px; 
         }
 
@@ -114,7 +109,7 @@
 
 <div class="container">
     <h1>♻️ ระบบแยกประเภทพลาสติก</h1>
-    <p>ส่องพลาสติกหน้ากล้องแล้วกดปุ่มเพื่อวิเคราะห์</p>
+    <p>ส่องพลาสติกหน้ากล้องให้ชัดเจน แล้วกดวิเคราะห์</p>
     
     <div id="webcam-container"></div>
     <br>
@@ -122,7 +117,7 @@
 
     <div id="result-card">
         <div id="res-type" class="type-badge"></div>
-        <div id="res-conf" style="color: #7f8c8d; font-size: 16px; margin-bottom: 15px;"></div>
+        <div id="res-conf" style="color: #7f8c8d; font-size: 14px; margin-bottom: 15px;"></div>
         
         <div id="res-detail">
             <div class="info-box">
@@ -141,51 +136,57 @@
 <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
 
 <script>
+    // ปรับชื่อ Class ให้ตรงกับ metadata.json เป๊ะๆ
     const plasticInfo = {
         "PET (1)": {
-            orig: "ขวดน้ำเปล่า, ขวดน้ำอัดลม, ขวดน้ำมันพืช, ถาดใส่อาหารแบบใส",
-            next: "เส้นใยสังเคราะห์สำหรับทำเสื้อผ้า (เสื้อยืด/เสื้อกันหนาว), ใยสังเคราะห์ในที่นอน, พรม, สายรัดกล่อง"
+            orig: "ขวดน้ำเปล่า, ขวดน้ำอัดลม, ถาดใส่อาหารแบบใส",
+            next: "เส้นใยทำเสื้อผ้า, พรม, ใยสังเคราะห์ในที่นอน"
         },
         "HDPE(2)": {
-            orig: "ขวดนม, ขวดแชมพู, ถุงหูหิ้วชนิดหนา, ขวดน้ำยาทำความสะอาด",
-            next: "กระถางต้นไม้, ถังขยะ, โต๊ะม้านั่งพลาสติก, ท่อระบายน้ำ, ไม้เทียมสำหรับงานก่อสร้าง"
+            orig: "ขวดนม, ขวดแชมพู, ขวดน้ำยาซักผ้า",
+            next: "โต๊ะม้านั่งพลาสติก, ถังขยะ, กระถางต้นไม้"
         },
         "PVC(3)": {
-            orig: "ท่อประปา, สายยาง, ฟิล์มยืดห่ออาหาร, หนังเทียม, ของเล่นเด็ก",
-            next: "กรวยจราจร, แผ่นปูพื้น, ตลับเทป, ม้านั่งภายนอกอาคาร"
+            orig: "ท่อประปา, สายยาง, ฟิล์มยืดห่ออาหาร",
+            next: "กรวยจราจร, แผ่นปูพื้น, ท่อระบายน้ำ"
         },
         "LDPE(4)": {
-            orig: "ถุงเย็นใส่อาหาร, ฟิล์มยืดถนอมอาหาร, หลอดพลาสติกแบบบีบ",
-            next: "ถุงดำขยะ, ถังขยะพลาสติก, กระเบื้องปูพื้นพลาสติก, เฟอร์นิเจอร์พลาสติก"
+            orig: "ถุงเย็นใส่อาหาร, ฟิล์มยืด, หลอดพลาสติกแบบบีบ",
+            next: "ถุงขยะสีดำ, กระเบื้องปูพื้นพลาสติก"
         },
         "PP(5)": {
-            orig: "กล่องบรรจุอาหาร (Microwave Safe), ฝาขวดน้ำ, หลอดดูดน้ำ",
-            next: "กล่องแบตเตอรี่รถยนต์, กันชนรถยนต์, ไม้กวาดพลาสติก, ถังหมักขยะ"
+            orig: "กล่องอาหาร (Microwave Safe), ฝาขวด, หลอดดูด",
+            next: "กล่องแบตเตอรี่, กันชนรถยนต์, ไม้กวาดพลาสติก"
         },
         "PS(6)": {
-            orig: "จานช้อนส้อมพลาสติก (ใช้แล้วทิ้ง), กล่องซีดี, โฟมใส่อาหาร",
-            next: "ไม้บรรทัด, แผงสวิตช์ไฟ, กล่องวิดีโอ, ฉนวนความร้อน"
+            orig: "ช้อนส้อมใช้แล้วทิ้ง, กล่องซีดี, โฟมใส่อาหาร",
+            next: "ไม้บรรทัด, แผงสวิตช์ไฟ, ฉนวนกันความร้อน"
         },
         "OTHER(7)": {
-            orig: "ขวดนมเด็ก (PC), เคสคอมพิวเตอร์, พลาสติกหลายชั้น",
-            next: "ผลิตภัณฑ์ไม้เทียมคุณภาพสูง, ม้านั่งสวนสาธารณะ, ใช้เป็นเชื้อเพลิงในอุตสาหกรรม"
+            orig: "พลาสติกหลายชั้น, เคสคอมพิวเตอร์",
+            next: "ไม้เทียมคุณภาพสูง, เชื้อเพลิงอุตสาหกรรม"
         }
     };
 
-    const MODEL_URL = "./my_model/";
+    // แก้ไข Path ตรงนี้ให้ยืดหยุ่น (ใช้ชื่อโฟลเดอร์ให้ตรงกับ GitHub)
+    const MODEL_URL = "my_model/"; 
     let model, webcam, history = [];
-    const HISTORY_SIZE = 10;
+    const HISTORY_SIZE = 8;
 
     async function setup() {
         try {
+            // โหลดโมเดล
             model = await tmImage.load(MODEL_URL + "model.json", MODEL_URL + "metadata.json");
-            webcam = new tmImage.Webcam(450, 350, true);
+            
+            // ตั้งค่ากล้อง
+            webcam = new tmImage.Webcam(400, 400, true); 
             await webcam.setup();
             await webcam.play();
             document.getElementById("webcam-container").appendChild(webcam.canvas);
             window.requestAnimationFrame(loop);
         } catch (e) {
-            alert("โหลดโมเดลไม่สำเร็จ! กรุณาเปิดผ่าน Live Server");
+            console.error(e);
+            alert("โหลดโมเดลไม่สำเร็จ! ตรวจสอบว่ามีโฟลเดอร์ my_model และไฟล์ครบถ้วน");
         }
     }
 
@@ -212,23 +213,21 @@
         const card = document.getElementById("result-card");
         const typeBox = document.getElementById("res-type");
         const confBox = document.getElementById("res-conf");
-        const origBox = document.getElementById("res-original");
-        const nextBox = document.getElementById("res-recycled");
         const detail = document.getElementById("res-detail");
 
         card.style.display = "block";
         const prob = (result.probability * 100).toFixed(1);
 
-        if (result.className === "พื้นหลัง" || result.probability < 0.6) {
+        if (result.className === "พื้นหลัง" || result.probability < 0.5) {
             typeBox.innerText = "❌ ระบุไม่ได้ชัดเจน";
-            confBox.innerText = `ความมั่นใจ: ${prob}% (กรุณาถือวัตถุให้ใกล้ขึ้น)`;
+            confBox.innerText = `ความมั่นใจ: ${prob}% (กรุณาจ่อวัตถุให้ใกล้ขึ้น)`;
             detail.style.display = "none";
         } else {
             const info = plasticInfo[result.className];
             typeBox.innerText = "✅ " + result.className;
             confBox.innerText = `ระดับความเชื่อมั่น: ${prob}%`;
-            origBox.innerText = info.orig;
-            nextBox.innerText = info.next;
+            document.getElementById("res-original").innerText = info ? info.orig : "-";
+            document.getElementById("res-recycled").innerText = info ? info.next : "-";
             detail.style.display = "block";
         }
     }
